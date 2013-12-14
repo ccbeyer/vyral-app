@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 
-@interface CCBMapViewController : UIViewController
-@property (weak, nonatomic) IBOutlet MKMapView *mapView;
+@interface CCBMapViewController : UIViewController <MKMapViewDelegate>
+@property (strong, nonatomic) IBOutlet MKMapView *mapView;
 
 @end

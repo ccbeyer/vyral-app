@@ -8,6 +8,7 @@
 
 #import "CCBHomeViewController.h"
 
+
 @interface CCBHomeViewController ()
 
 @property (nonatomic, strong) IBOutlet UILabel *nameField;
@@ -208,6 +209,39 @@
     [currentUser setObject:@YES forKey:@"CurrentlySick"];
     [currentUser addUniqueObject:report forKey:@"Date_SickReport"];
     [currentUser saveInBackground];
+    
+    
+    PFQuery *sickLocationQuery = [PFQuery queryWithClassName:@"SickLocation"];
+    
+    NSDate *now = [NSDate date];
+    NSDate *oneDayAgo = [now dateByAddingTimeInterval:-1*24*60*60];
+    
+    [sickLocationQuery whereKey:@"username" equalTo:[currentUser username]];
+    [sickLocationQuery whereKey:@"createdAt" greaterThanOrEqualTo:oneDayAgo];
+    [sickLocationQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
+     {
+         if (error) // The query failed
+         {
+             NSLog(@"Error in geo query!");
+         }
+         else // The query is successful
+         {
+             NSLog(@"REACHED: %lu", (unsigned long)[objects count]);
+             if ([objects count] == 0) {
+                 PFObject *sickLocation = [PFObject objectWithClassName:@"SickLocation"];
+                 sickLocation[@"Date"] = today;
+                 NSLog(@"LOCATION: %@", geoPoint);
+                 sickLocation[@"Location"] = geoPoint;
+                 sickLocation[@"username"] = [currentUser username];
+                 [sickLocation saveInBackground];
+             }
+             
+             
+         }
+         
+         
+     }];
+
     
     
     
