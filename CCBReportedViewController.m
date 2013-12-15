@@ -23,9 +23,11 @@
 @property (nonatomic, strong) IBOutlet UILabel *sickPredict;
 
 
+
 @property (nonatomic, strong) NSMutableArray *allPosts;
 @property (nonatomic, copy) NSString *className;
 @property (nonatomic, strong) CLLocationManager *locationManager;
+@property (nonatomic, strong) MKUserLocation *currentUserLocation;
 
 - (void)queryForAllPostsNearLocation:(CLLocation *)currentLocation withNearbyDistance:(CLLocationAccuracy)nearbyDistance;
 
@@ -90,7 +92,7 @@
     }
     
     
-    
+
     
 //    NSString *ImageURL = [user objectForKey:@"pictureURL"];
 //    NSLog(@"URL: %@", ImageURL);
@@ -143,7 +145,7 @@
     CLLocation *location = _locationManager.location;
     //CLLocationCoordinate2D coordinate = [location coordinate];
     //[self.view addSubview:[[MBXMapView alloc] initWithFrame:self.view.bounds mapID:@MAP_ID]];
-    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,240,320,300) mapID:@MAP_ID];
+    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,125,320,420) mapID:@MAP_ID];
     // _mapView = [[MKMapView alloc] initWithFrame:self.view.bounds];
     _mapView.showsUserLocation = YES;
     //_mapView.mapType = MKMapTypeSatellite;
@@ -151,7 +153,7 @@
     //[_mapView setShowsPointsOfInterest:NO];
     
     
-    
+    //[_mapView setUserTrackingMode:MKUserTrackingModeNone animated:NO];
     [self.view addSubview:_mapView];
     [self queryForAllPostsNearLocation:location withNearbyDistance:self.locationManager.desiredAccuracy];
 
@@ -223,6 +225,8 @@
                  CCBAnnotation *annotation = [[CCBAnnotation alloc] initWithCoordinate:coords];
                  [self.mapView addAnnotation:annotation];
              }
+             [self centerMap];
+
              
          }
          
@@ -240,23 +244,54 @@
     _locationManager = [[CLLocationManager alloc] init];
     [_locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
     [_locationManager setDelegate:self];
-    [_locationManager setPurpose:@"Your current location is used to demonstrate PFGeoPoint and Geo Queries."];
-    
+    //[_locationManager setPurpose:@"Your current location is used to demonstrate PFGeoPoint and Geo Queries."];
     return _locationManager;
 }
 
-- (void)mapView:(MKMapView *)aMapView didUpdateUserLocation:(MKUserLocation *)aUserLocation {
+
+//- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
+//    NSLog(@"UPDATED LOCATION");
+//    MKCoordinateRegion region;
+//    MKCoordinateSpan span;
+//    span.latitudeDelta = 0.02;
+//    span.longitudeDelta = 0.02;
+//    CLLocationCoordinate2D location;
+//    CLLocation *currentLocation = [locations lastObject];
+//    location.latitude = currentLocation.coordinate.latitude;
+//    location.longitude = currentLocation.coordinate.longitude;
+//    region.span = span;
+//    region.center = location;
+//    [_mapView setRegion:region animated:YES];
+//}
+
+- (void)centerMap {
     NSLog(@"USERFOUND");
     MKCoordinateRegion region;
     MKCoordinateSpan span;
-    span.latitudeDelta = 0.005;
-    span.longitudeDelta = 0.005;
+    span.latitudeDelta = 0.02;
+    span.longitudeDelta = 0.02;
     CLLocationCoordinate2D location;
-    location.latitude = aUserLocation.coordinate.latitude;
-    location.longitude = aUserLocation.coordinate.longitude;
+    location.latitude = _currentUserLocation.coordinate.latitude;
+    location.longitude = _currentUserLocation.coordinate.longitude;
     region.span = span;
     region.center = location;
-    [aMapView setRegion:region animated:YES];
+    [_mapView setRegion:region animated:YES];
+
+}
+
+- (void)mapView:(MKMapView *)aMapView didUpdateUserLocation:(MKUserLocation *)aUserLocation {
+    _currentUserLocation = aUserLocation;
+//    NSLog(@"USERFOUND");
+//    MKCoordinateRegion region;
+//    MKCoordinateSpan span;
+//    span.latitudeDelta = 0.02;
+//    span.longitudeDelta = 0.02;
+//    CLLocationCoordinate2D location;
+//    location.latitude = aUserLocation.coordinate.latitude;
+//    location.longitude = aUserLocation.coordinate.longitude;
+//    region.span = span;
+//    region.center = location;
+//    [aMapView setRegion:region animated:YES];
 }
 
 

@@ -214,10 +214,11 @@
     PFQuery *sickLocationQuery = [PFQuery queryWithClassName:@"SickLocation"];
     
     NSDate *now = [NSDate date];
-    NSDate *oneDayAgo = [now dateByAddingTimeInterval:-1*24*60*60];
+    NSDate *oneDayAgo = [now dateByAddingTimeInterval:-1*6*60*60];
     
     [sickLocationQuery whereKey:@"username" equalTo:[currentUser username]];
-    [sickLocationQuery whereKey:@"createdAt" greaterThanOrEqualTo:oneDayAgo];
+    [sickLocationQuery whereKey:@"createdAt" greaterThanOrEqualTo:now];
+    //[sickLocationQuery whereKey:@"createdAt" greaterThanOrEqualTo:oneDayAgo];
     [sickLocationQuery findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error)
      {
          if (error) // The query failed
