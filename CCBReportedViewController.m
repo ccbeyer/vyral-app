@@ -64,6 +64,8 @@
 {
     [super viewDidLoad];
     
+#pragma INITIALIZE VIEW APPEARANCE
+    //INITIALIZE VIEW
     [[UITabBar appearance] setTintColor:[UIColor redColor]];
     [[UITabBar appearance] setBarTintColor:[UIColor darkGrayColor]];
     PFUser *currentUser = [PFUser currentUser];
@@ -71,12 +73,7 @@
     NSString *schooltemp = currentUser[@"School"];
     NSString *school = [schooltemp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     NSLog(@"Current user school: %@", school);
-    //PFQuery *query1= [PFUser query];
-    
-    //[query1 whereKey:@"username" equalTo:[[PFUser currentUser]username]];
-    //PFObject *user = [query1 getFirstObject];
-    //[query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){}];
-    
+
     _nameField.text = [[CCBUserInfo sharedInstance] name];
     _schoolField.text = [[CCBUserInfo sharedInstance] school];
     BOOL sick = [[CCBUserInfo sharedInstance] sickBool];
@@ -90,16 +87,10 @@
         _sickField.backgroundColor = [UIColor colorWithRed:0/255.0f green:200/255.0f blue:18/255.0f alpha:1.0f];;
         _sickField.font = [UIFont systemFontOfSize:12];
     }
-    
-    
 
-    
-//    NSString *ImageURL = [user objectForKey:@"pictureURL"];
-//    NSLog(@"URL: %@", ImageURL);
-//    //NSString *ImageURL = @"https://graph.facebook.com/639529688/picture?type=large&return_ssl_resources=1";
-//    NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
     _imageView.image = [[CCBUserInfo sharedInstance] profilePicture];
 
+    
     //get sickPredict
     if ([[CCBUserInfo sharedInstance] sickBool]) {
         
@@ -120,7 +111,8 @@
         
     }
     
-	// Do any additional setup after loading the view.
+#pragma QUERY FOR RISK
+    //QUERY FOR RISK
     PFQuery *query = [PFQuery queryWithClassName:@"School"];
     //[query whereKey:@"Name" equalTo:school];
     [query whereKey:@"Name" equalTo:school];
@@ -141,6 +133,9 @@
             NSLog(@"Error: %@ %@", error, [error userInfo]);
         }
     }];
+    
+#pragma INITIALIZE MAP VIEW
+    //INITIALIZE MAP VIEW
     _allPosts = [[NSMutableArray alloc] init];
     CLLocation *location = _locationManager.location;
     //CLLocationCoordinate2D coordinate = [location coordinate];
@@ -328,6 +323,49 @@
     }
     
     return nil;
+}
+
+-(void)mapView:(MKMapView *)pMapView regionDidChangeAnimated:(BOOL)animated
+{
+
+
+
+
+    float scale = .008/(_mapView.region.span.latitudeDelta/2);
+    if (scale > 1) {
+        scale = 1;
+    } else if (scale < .13 && scale > .09) {
+        scale = 0.13;
+    }
+    NSLog(@"SCALE: %f", scale);
+    
+    //Scale the annotations
+    for( CCBAnnotation *annotation in [[self mapView] annotations] ){
+        
+        if ([annotation isKindOfClass:[CCBAnnotation class]]) {
+            UIImage *tempImage = [UIImage imageNamed:@"orangeDot.png"];
+            CGImageRef imgRef = [tempImage CGImage];
+            
+            CGFloat width = CGImageGetWidth(imgRef);
+            CGFloat height = CGImageGetHeight(imgRef);
+            CGRect bounds = CGRectMake(0, 0, width, height);
+            CGSize size = bounds.size;
+            
+            CGAffineTransform transform = CGAffineTransformMakeScale(scale, scale);
+            
+            UIGraphicsBeginImageContext(size);
+            CGContextRef context = UIGraphicsGetCurrentContext();
+            CGContextConcatCTM(context, transform);
+            CGContextDrawImage(context, bounds, imgRef);
+            UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
+            
+            [[[self mapView] viewForAnnotation: annotation] setImage:image];
+        
+            
+        }
+    }
+    
 }
 
 
