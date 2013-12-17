@@ -55,10 +55,11 @@
                 NSString *school = [[obj objectForKey:@"school"] objectForKey:@"name"];
                 NSInteger year = [[[obj objectForKey:@"year"] objectForKey:@"name"] intValue];
                 NSLog(@"%@ %ld",school, (long)year);
-                if (year > latestEducationYear) {
-                    latestEducationYear = year;
-                    currentEducation = school;
-                }
+                currentEducation = school;
+//                if (year > latestEducationYear) {
+//                    latestEducationYear = year;
+//                    currentEducation = school;
+//                }
             }
             
             NSDateFormatter *df = [[NSDateFormatter alloc] init];
@@ -104,10 +105,14 @@
     [currentUser setObject:_pictureURL forKey:@"pictureURL"];
     [currentUser saveInBackground];
     
+    //[self.navigationController popToRootViewControllerAnimated:YES];
+    
     if (self.presentingViewController.presentingViewController == NULL) {
+        NSLog(@"NULL");
         [self dismissViewControllerAnimated:YES completion:nil];
     }
     else {
+        NSLog(@"VC: %@", self.presentingViewController.presentingViewController);
         [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
     }
 }

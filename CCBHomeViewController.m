@@ -54,9 +54,7 @@
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
         // do stuff with the user
-    } else {
-        [self performSegueWithIdentifier:@"Login" sender:self];
-    }
+    
     //Hide Nav Bar
     [self.navigationController setNavigationBarHidden:YES];
     
@@ -120,7 +118,9 @@
     _nameField.text = [[PFUser currentUser]valueForKey:@"Name"];
     _schoolField.text = [[PFUser currentUser]valueForKey:@"School"];
 
-
+    } else {
+        [self performSegueWithIdentifier:@"HomeToLogin" sender:self];
+    }
     
     
 
@@ -276,6 +276,7 @@
 
 - (IBAction)clearSick:(id)sender {
     [[CCBUserInfo sharedInstance] setSickBool:NO];
+    [self performSegueWithIdentifier:@"HomeToReported" sender:self];
     PFUser *currentUser = [PFUser currentUser];
     
     NSDate *today = [NSDate date];
@@ -286,7 +287,7 @@
     
     BOOL sickbool = NO;
     NSNumber *sick = [NSNumber numberWithBool:sickbool];
-    [self performSegueWithIdentifier:@"HomeToReported" sender:self];
+    
 
     
     NSDictionary *report = @{@"Date": date,
@@ -321,6 +322,17 @@
     }];
 }
 
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    NSLog(@"prepareForSegue: %@", segue.identifier);
+    
+    if ([segue.identifier isEqualToString:@"HomeToReported"]) {
+        [segue.destinationViewController setHappiness:100];
+    } else if ([segue.identifier isEqualToString:@"Sad"]) {
+        [segue.destinationViewController setHappiness:0];
+    }
+}
+
 - (CLLocationManager *)locationManager {
     if (_locationManager != nil) {
         return _locationManager;
@@ -329,7 +341,7 @@
     _locationManager = [[CLLocationManager alloc] init];
     [_locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
     [_locationManager setDelegate:self];
-    [_locationManager setPurpose:@"Your current location is used to demonstrate PFGeoPoint and Geo Queries."];
+    [_locationManager setPurpose:@"Your current location is used to provide accurate data on your risk of getting sick."];
     
     return _locationManager;
 }

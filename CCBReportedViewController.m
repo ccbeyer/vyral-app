@@ -9,7 +9,10 @@
 #import "CCBReportedViewController.h"
 #import "CCBMapViewController.h"
 #import "CCBAnnotation.h"
+#import "CCBRiskPageViewController.h"
+#import "CCBTipsPageViewController.h"
 #import "MBXMapKit.h"
+
 #define MAX_SEARCH_DISTANCE_KM 2.0
 #define MAP_ID "chrisbeyer.ghk86opp"
 
@@ -21,7 +24,9 @@
 @property (nonatomic, strong) IBOutlet UILabel *sickField;
 @property (nonatomic, strong) IBOutlet UIButton *backButton;
 @property (nonatomic, strong) IBOutlet UILabel *sickPredict;
-
+@property (nonatomic, strong) IBOutlet UIProgressView *riskIndicator;
+@property (nonatomic, strong) IBOutlet UILabel *riskString;
+@property (nonatomic, strong) IBOutlet UIButton *Back;
 
 
 @property (nonatomic, strong) NSMutableArray *allPosts;
@@ -66,16 +71,14 @@
     
 #pragma INITIALIZE VIEW APPEARANCE
     //INITIALIZE VIEW
-    [[UITabBar appearance] setTintColor:[UIColor redColor]];
-    [[UITabBar appearance] setBarTintColor:[UIColor darkGrayColor]];
     PFUser *currentUser = [PFUser currentUser];
     [currentUser refresh];
     NSString *schooltemp = currentUser[@"School"];
     NSString *school = [schooltemp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     NSLog(@"Current user school: %@", school);
 
-    _nameField.text = [[CCBUserInfo sharedInstance] name];
-    _schoolField.text = [[CCBUserInfo sharedInstance] school];
+    //_nameField.text = [[CCBUserInfo sharedInstance] name];
+    //_schoolField.text = [[CCBUserInfo sharedInstance] school];
     BOOL sick = [[CCBUserInfo sharedInstance] sickBool];
     NSLog(@"CurrentlySick: %hhd", sick);
     if (sick) {
@@ -88,7 +91,7 @@
         _sickField.font = [UIFont systemFontOfSize:12];
     }
 
-    _imageView.image = [[CCBUserInfo sharedInstance] profilePicture];
+    //_imageView.image = [[CCBUserInfo sharedInstance] profilePicture];
 
     
     //get sickPredict
@@ -134,13 +137,14 @@
         }
     }];
     
+    
 #pragma INITIALIZE MAP VIEW
     //INITIALIZE MAP VIEW
     _allPosts = [[NSMutableArray alloc] init];
     CLLocation *location = _locationManager.location;
     //CLLocationCoordinate2D coordinate = [location coordinate];
     //[self.view addSubview:[[MBXMapView alloc] initWithFrame:self.view.bounds mapID:@MAP_ID]];
-    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,125,320,420) mapID:@MAP_ID];
+    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,125,320,405) mapID:@MAP_ID];
     // _mapView = [[MKMapView alloc] initWithFrame:self.view.bounds];
     _mapView.showsUserLocation = YES;
     //_mapView.mapType = MKMapTypeSatellite;
@@ -151,8 +155,106 @@
     //[_mapView setUserTrackingMode:MKUserTrackingModeNone animated:NO];
     [self.view addSubview:_mapView];
     [self queryForAllPostsNearLocation:location withNearbyDistance:self.locationManager.desiredAccuracy];
+    
+#pragma INITIALIZE PAGE VIEW
+    self.pageController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:nil];
+    
+    self.pageController.dataSource = self;
+    [[self.pageController view] setFrame:CGRectMake(0,0,320,125)];
+    [self.pageController view].backgroundColor = [UIColor darkGrayColor];
+    
+    UIViewController *initialViewController = [self viewControllerAtIndex:0];
+    
+    NSArray *viewControllers = [NSArray arrayWithObject:initialViewController];
+    
+    [self.pageController setViewControllers:viewControllers direction:UIPageViewControllerNavigationDirectionForward animated:NO completion:nil];
+    
+    [self addChildViewController:self.pageController];
+    [[self view] addSubview:[self.pageController view]];
+    [self.pageController didMoveToParentViewController:self];
+
 
 }
+
+
+- (UIViewController *)viewControllerAtIndex:(NSUInteger)index {
+    
+    UIViewController *childViewController;
+    
+    if (index == 0) {
+        childViewController = [[CCBRiskPageViewController alloc] init];
+        ((CCBRiskPageViewController *)childViewController).index = index;
+        
+        _riskIndicator = [[UIProgressView alloc] initWithFrame:CGRectMake(85,50,150,20)];
+        _riskIndicator.progressTintColor = RISK_RED;
+        _riskIndicator.trackTintColor = RISK_GREEN;
+        CGAffineTransform transform = CGAffineTransformMakeScale(1.0f, 2.0f);
+        _riskIndicator.transform = transform;
+        [childViewController.view addSubview:_riskIndicator];
+        
+        _riskString = [[UILabel alloc] initWithFrame:CGRectMake(85,70,150,20)];
+        [_riskString setTextColor:[UIColor whiteColor]];
+        _riskString.textAlignment = NSTextAlignmentCenter;
+        [childViewController.view addSubview:_riskString];
+
+    }
+    else {
+        childViewController = [[CCBTipsPageViewController alloc] init];
+        ((CCBTipsPageViewController *)childViewController).index = index;
+        
+    }
+
+    
+    return childViewController;
+    
+}
+
+- (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerBeforeViewController:(UIViewController *)viewController {
+    NSUInteger index;
+    if ([NSStringFromClass([viewController class]) isEqualToString:@"CCBRiskPageViewController"]) {
+        index = [(CCBRiskPageViewController *)viewController index];
+    }
+    else {
+        index = [(CCBTipsPageViewController *)viewController index];
+    }
+    
+    if (index == 0) {
+        return [self viewControllerAtIndex:1];
+    } else {
+        return [self viewControllerAtIndex:0];
+    }
+    
+}
+
+- (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerAfterViewController:(UIViewController *)viewController {
+    
+    NSUInteger index;
+    if ([NSStringFromClass([viewController class]) isEqualToString:@"CCBRiskPageViewController"]) {
+        index = [(CCBRiskPageViewController *)viewController index];
+    }
+    else {
+        index = [(CCBTipsPageViewController *)viewController index];
+    }
+    
+    if (index == 0) {
+        return [self viewControllerAtIndex:1];
+    } else {
+        return [self viewControllerAtIndex:0];
+    }
+    
+}
+
+- (NSInteger)presentationCountForPageViewController:(UIPageViewController *)pageViewController {
+    // The number of items reflected in the page indicator.
+    return 0;
+}
+
+- (NSInteger)presentationIndexForPageViewController:(UIPageViewController *)pageViewController {
+    // The selected item reflected in the page indicator.
+    return 0;
+}
+
+
 
 - (IBAction)clickBack:(id)sender {
     [self.navigationController popToRootViewControllerAnimated:YES];
@@ -327,9 +429,6 @@
 
 -(void)mapView:(MKMapView *)pMapView regionDidChangeAnimated:(BOOL)animated
 {
-
-
-
 
     float scale = .008/(_mapView.region.span.latitudeDelta/2);
     if (scale > 1) {

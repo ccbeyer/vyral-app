@@ -10,11 +10,13 @@
 #import <MapKit/MapKit.h>
 
 
-@interface CCBReportedViewController : UIViewController <MKMapViewDelegate>
+@interface CCBReportedViewController : UIViewController <MKMapViewDelegate, UIPageViewControllerDataSource, UIPageViewControllerDelegate>
 
-@property (nonatomic, strong) IBOutlet UIProgressView *riskIndicator;
-@property (nonatomic, strong) IBOutlet UILabel *riskString;
+
 @property (strong, nonatomic) IBOutlet MKMapView *mapView;
+
+@property (strong, nonatomic) UIPageViewController *pageController;
+
 
 
 @end
