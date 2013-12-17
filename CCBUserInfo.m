@@ -29,7 +29,6 @@
 }
 
 
-
 - (NSString *)school
 {
     // set some property for example
@@ -57,6 +56,12 @@
 - (NSDate *)lastReportDate
 {
     return _lastReportDate;
+}
+
+- (NSInteger)schoolRisk
+{
+    // set some property for example
+    return _schoolRisk;
 }
 
 @end

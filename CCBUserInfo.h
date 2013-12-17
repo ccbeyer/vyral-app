@@ -16,6 +16,7 @@
 @property (nonatomic) BOOL sickBool;
 @property (nonatomic, strong) NSMutableArray *currentSymptoms;
 @property (nonatomic, strong) NSDate *lastReportDate;
+@property (nonatomic, assign) NSInteger schoolRisk;
 
 
 + (CCBUserInfo *)sharedInstance;

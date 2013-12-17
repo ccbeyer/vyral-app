@@ -7,6 +7,7 @@
 //
 
 #import "CCBHomeViewController.h"
+#import "CCBReportedViewController.h"
 
 
 @interface CCBHomeViewController ()
@@ -54,69 +55,44 @@
     PFUser *currentUser = [PFUser currentUser];
     if (currentUser) {
         // do stuff with the user
+
+        
+        //Hide Nav Bar
+        [self.navigationController setNavigationBarHidden:YES];
     
-    //Hide Nav Bar
-    [self.navigationController setNavigationBarHidden:YES];
-    
-    //Nav Bar Setup
-//    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(self.view.center.x-35, 50, 700, 44)];
-//    label.backgroundColor = [UIColor clearColor];
-//    label.textColor = [UIColor whiteColor];
-//    label.textAlignment = NSTextAlignmentCenter;
-//    label.text = @"vyral";
-//    [label setFont:[UIFont fontWithName:@"HelveticaNeue-Light" size:30]];
-//    // Do some stuff
-//    [self.navigationItem setTitleView:label];
-//    
-//    self.navigationController.navigationBar.barTintColor = [UIColor colorWithWhite:.25 alpha:1.0];
-    
-    PFQuery *query= [PFUser query];
-    
-    [query whereKey:@"username" equalTo:[[PFUser currentUser]username]];
-    //PFObject *user = [query getFirstObject];
-    [query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){
+
         
-        //NAME
-        _name = [user objectForKey:@"Name"];
-//        _nameField.text = _name;
-//        [[CCBUserInfo sharedInstance] setName:_name];
-//        NSLog(@"CCBUserInfo: %@", [[CCBUserInfo sharedInstance] name]);
+        PFQuery *query= [PFUser query];
         
-        //SCHOOL
-        _school = [user objectForKey:@"School"];
-//        _schoolField.text = _school;
-//        [[CCBUserInfo sharedInstance] setSchool:_school];
-        
-        //SICK
-        _sickB = [[user objectForKey:@"CurrentlySick"] boolValue];
-//        [[CCBUserInfo sharedInstance] setSickBool:&_sick];
-//        NSLog(@"CurrentlySick: %hhd", _sick);
-//        if (_sick) {
-//            _sickField.text = @"SICK";
-//            _sickField.backgroundColor = [UIColor redColor];
-//            _sickField.font = [UIFont systemFontOfSize:16];
-//        } else {
-//            _sickField.text = @"HEALTHY";
-//            _sickField.backgroundColor = [UIColor colorWithRed:0/255.0f green:200/255.0f blue:18/255.0f alpha:1.0f];;
-//            _sickField.font = [UIFont systemFontOfSize:12];
-//        }
-        
-        //PROFILE PICTURE
-        NSString *ImageURL = [user objectForKey:@"pictureURL"];
-        NSLog(@"URL: %@", ImageURL);
-        //NSString *ImageURL = @"https://graph.facebook.com/639529688/picture?type=large&return_ssl_resources=1";
-        NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
-        _profilePic = [UIImage imageWithData:imageData];
-//        _imageView.image = _profilePic;
-//        [[CCBUserInfo sharedInstance] setProfilePicture:_profilePic];
-        [self updateUserInfoValues];
-        [self updateView];
-        
+        [query whereKey:@"username" equalTo:[[PFUser currentUser]username]];
+        //PFObject *user = [query getFirstObject];
+        [query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){
+            
+            //NAME
+            _name = [user objectForKey:@"Name"];
+            NSLog(@"ASDFASDFA::::::%@", [user objectForKey:@"Name"]);
+            
+            //SCHOOL
+            _school = [user objectForKey:@"School"];
+
+            
+            //SICK
+            _sickB = [[user objectForKey:@"CurrentlySick"] boolValue];
+
+            
+            //PROFILE PICTURE
+            NSString *ImageURL = [user objectForKey:@"pictureURL"];
+            NSLog(@"URL: %@", ImageURL);
+            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
+            _profilePic = [UIImage imageWithData:imageData];
+
+            [self updateUserInfoValues];
+            [self updateView];
+            
         }];
     
     
-    _nameField.text = [[PFUser currentUser]valueForKey:@"Name"];
-    _schoolField.text = [[PFUser currentUser]valueForKey:@"School"];
+
 
     } else {
         [self performSegueWithIdentifier:@"HomeToLogin" sender:self];
@@ -275,9 +251,16 @@
 }
 
 - (IBAction)clearSick:(id)sender {
+    NSMutableArray *general = [[NSMutableArray alloc] init];
+    [general addObject:@"General"];
+    [[CCBUserInfo sharedInstance] setCurrentSymptoms:general];
+    PFUser *currentUser = [PFUser currentUser];
+    
+    [currentUser setObject:general forKey:@"currentSymptoms"];
+    [currentUser saveInBackground];
+    
     [[CCBUserInfo sharedInstance] setSickBool:NO];
     [self performSegueWithIdentifier:@"HomeToReported" sender:self];
-    PFUser *currentUser = [PFUser currentUser];
     
     NSDate *today = [NSDate date];
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
@@ -322,16 +305,14 @@
     }];
 }
 
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    NSLog(@"prepareForSegue: %@", segue.identifier);
-    
-    if ([segue.identifier isEqualToString:@"HomeToReported"]) {
-        [segue.destinationViewController setHappiness:100];
-    } else if ([segue.identifier isEqualToString:@"Sad"]) {
-        [segue.destinationViewController setHappiness:0];
-    }
-}
+//-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+//{
+//    NSLog(@"prepareForSegue: %@", segue.identifier);
+//    
+//    if ([segue.identifier isEqualToString:@"HomeToReported"]) {
+//        [segue.destinationViewController setUserSick];
+//    }
+//}
 
 - (CLLocationManager *)locationManager {
     if (_locationManager != nil) {

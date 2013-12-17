@@ -17,6 +17,8 @@
 
 @property (strong, nonatomic) UIPageViewController *pageController;
 
+- (void)setUserSick;
+
 
 
 @end

@@ -10,6 +10,8 @@
 
 @interface CCBTipsPageViewController ()
 
+@property (nonatomic, strong) NSMutableArray *currentTips;
+
 @end
 
 @implementation CCBTipsPageViewController
@@ -25,10 +27,60 @@
     return self;
 }
 
+-(UITableView *)makeTableView
+{
+//    CGFloat x = 0;
+//    CGFloat y = 50;
+//    CGFloat width = 320;
+//    CGFloat height = 125;
+    //CGRect tableFrame = CGRectMake(x, y, width, height);
+    
+    UITableView *tableView = [[UITableView alloc] init];
+    
+    tableView.rowHeight = 55;
+    //tableView.sectionFooterHeight = 22;
+    //tableView.sectionHeaderHeight = 22;
+    tableView.scrollEnabled = YES;
+    tableView.showsVerticalScrollIndicator = YES;
+    tableView.userInteractionEnabled = YES;
+    tableView.bounces = YES;
+    tableView.backgroundColor = [UIColor darkGrayColor];
+    
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    
+    return tableView;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    self.tableView = [self makeTableView];
+    NSLog(@"TABLEVIEW created");
+    _currentTips = [[NSMutableArray alloc] init];
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"Tips"];
+    [query whereKey:@"Symptom" containedIn:[CCBUserInfo sharedInstance].currentSymptoms];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            // The find succeeded.
+            // Do something with the found objects
+            NSLog(@"Tips success: %d", [objects count]);
+            for (PFObject *object in objects) {
+                NSLog(@"Tip: %@", [object objectForKey:@"Tip"]);
+                [_currentTips addObject:[object objectForKey:@"Tip"]];
+                NSLog(@"Tip: %@", [_currentTips objectAtIndex:0]);
+            }
+        } else {
+            // Log details of the failure
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+        NSLog(@"currenttips success: %d", [_currentTips count]);
+        [self.tableView reloadData];
+    }];
+    
+    
+    
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
  
@@ -46,24 +98,33 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
-    return 0;
+    return [_currentTips count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    NSLog(@"cellforrowatindex %ld", (long)indexPath.row);
     static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    }
     // Configure the cell...
+    //cell.textLabel.text = [NSString stringWithFormat:[yourItemsArray objectAtIndex:indexPath.row]];
+    cell.textLabel.text = [NSString stringWithFormat:@"%@", [_currentTips objectAtIndex:indexPath.row]];
+    cell.textLabel.textColor = [UIColor whiteColor];
+    cell.textLabel.numberOfLines = 2;
+    cell.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    cell.textLabel.font = [ UIFont fontWithName: @"HelveticaNeue" size: 12.0 ];
+    cell.backgroundColor = [UIColor darkGrayColor];
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
     return cell;
 }

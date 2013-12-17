@@ -28,6 +28,9 @@
 @property (nonatomic, strong) IBOutlet UILabel *riskString;
 @property (nonatomic, strong) IBOutlet UIButton *Back;
 
+@property (nonatomic) BOOL riskQueryFinished;
+
+
 
 @property (nonatomic, strong) NSMutableArray *allPosts;
 @property (nonatomic, copy) NSString *className;
@@ -68,6 +71,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    _riskQueryFinished = NO;
     
 #pragma INITIALIZE VIEW APPEARANCE
     //INITIALIZE VIEW
@@ -121,12 +125,14 @@
     [query whereKey:@"Name" equalTo:school];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
+            _riskQueryFinished = YES;
             // The find succeeded.
             NSLog(@"Successfully accessed school.");
             // Do something with the found objects
             for (PFObject *object in objects) {
                 NSLog(@"Risk: %@", [object objectForKey:@"Risk"]);
                 double risk =[[object objectForKey:@"Risk"] doubleValue];
+                [[CCBUserInfo sharedInstance] setSchoolRisk:(NSInteger)risk];
                 _riskIndicator.progress = risk/10;
                 _riskString.text = [NSString stringWithFormat:@"UPenn Risk: %d", (int) risk];
                 //_riskString.text = [NSString stringWithFormat:@"UPenn Health Score: %d", (int) (10-risk)];
@@ -136,6 +142,7 @@
             NSLog(@"Error: %@ %@", error, [error userInfo]);
         }
     }];
+    
     
     
 #pragma INITIALIZE MAP VIEW
@@ -164,6 +171,7 @@
     [self.pageController view].backgroundColor = [UIColor darkGrayColor];
     
     UIViewController *initialViewController = [self viewControllerAtIndex:0];
+    UIViewController *secondViewController = [self viewControllerAtIndex:1];
     
     NSArray *viewControllers = [NSArray arrayWithObject:initialViewController];
     
@@ -180,7 +188,7 @@
 - (UIViewController *)viewControllerAtIndex:(NSUInteger)index {
     
     UIViewController *childViewController;
-    
+    NSLog(@"INDEX = %lu", (unsigned long)index);
     if (index == 0) {
         childViewController = [[CCBRiskPageViewController alloc] init];
         ((CCBRiskPageViewController *)childViewController).index = index;
@@ -190,18 +198,24 @@
         _riskIndicator.trackTintColor = RISK_GREEN;
         CGAffineTransform transform = CGAffineTransformMakeScale(1.0f, 2.0f);
         _riskIndicator.transform = transform;
+        double risk =[[CCBUserInfo sharedInstance] schoolRisk];
+        _riskIndicator.progress = risk/10;
         [childViewController.view addSubview:_riskIndicator];
         
         _riskString = [[UILabel alloc] initWithFrame:CGRectMake(85,70,150,20)];
         [_riskString setTextColor:[UIColor whiteColor]];
         _riskString.textAlignment = NSTextAlignmentCenter;
+        if (_riskQueryFinished) {
+            _riskString.text = [NSString stringWithFormat:@"UPenn Risk: %d", (int) risk];
+        }
         [childViewController.view addSubview:_riskString];
 
     }
     else {
         childViewController = [[CCBTipsPageViewController alloc] init];
         ((CCBTipsPageViewController *)childViewController).index = index;
-        
+//        ((CCBTipsPageViewController *)childViewController).tableView.dataSource = self;
+
     }
 
     
@@ -331,6 +345,53 @@
      }];
     
     
+}
+
+- (void)setUserSick {
+    PFUser *currentUser = [PFUser currentUser];
+    
+    NSDate *today = [NSDate date];
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    [dateFormat setDateFormat:@"yyyy-MM-dd"];
+    NSString *date = [dateFormat stringFromDate:today];
+    NSLog(@"date: %@", date);
+    
+    BOOL sickbool = NO;
+    NSNumber *sick = [NSNumber numberWithBool:sickbool];
+    
+    
+    
+    NSDictionary *report = @{@"Date": date,
+                             @"Sick": sick};
+    
+    [currentUser addUniqueObject:report forKey:@"Date_SickReport"];
+    
+    [currentUser setObject:@NO forKey:@"CurrentlySick"];
+    [currentUser saveInBackground];
+    
+    
+    NSString *username = [currentUser objectForKey:@"username"];
+    NSLog(@"username: %@", username);
+    NSString *schooltemp = currentUser[@"School"];
+    NSString *school = [schooltemp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"School"];
+    [query whereKey:@"Name" equalTo:school];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            // The find succeeded.
+            // Do something with the found objects
+            
+            for (PFObject *object in objects) {
+                [object removeObject:username forKey:@"usersSick"];
+                [object saveInBackground];
+            }
+        } else {
+            // Log details of the failure
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+    }];
+
 }
 
 - (CLLocationManager *)locationManager {
