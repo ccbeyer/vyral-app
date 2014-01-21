@@ -104,6 +104,14 @@
     [currentUser setObject:_schoolField.text forKey:@"School"];
     [currentUser setObject:_pictureURL forKey:@"pictureURL"];
     [currentUser saveInBackground];
+    [[CCBUserInfo sharedInstance] setName:_nameField.text];
+    [[CCBUserInfo sharedInstance] setSchool:_schoolField.text];
+    [[CCBUserInfo sharedInstance] setSickBool:NO];
+    
+    NSString *ImageURL = _pictureURL;
+    NSLog(@"URL: %@", ImageURL);
+    NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
+    [[CCBUserInfo sharedInstance] setProfilePicture: [UIImage imageWithData:imageData]];
     
     //[self.navigationController popToRootViewControllerAnimated:YES];
     
@@ -113,7 +121,7 @@
     }
     else {
         NSLog(@"VC: %@", self.presentingViewController.presentingViewController);
-        [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+        [self.presentingViewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
     }
 }
 

@@ -41,7 +41,7 @@
 }
 
 - (IBAction)dismissModalCancel:(id)sender {
-    [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+    [self.presentingViewController.presentedViewController dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (IBAction)dismissModal:(id)sender {

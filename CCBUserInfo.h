@@ -20,5 +20,6 @@
 
 
 + (CCBUserInfo *)sharedInstance;
+- (void) queryForInfo;
 
 @end

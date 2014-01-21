@@ -10,6 +10,34 @@
 
 @implementation CCBUserInfo
 
+- (void)queryForInfo {
+    PFQuery *query= [PFUser query];
+    
+    [query whereKey:@"username" equalTo:[[PFUser currentUser]username]];
+    //PFObject *user = [query getFirstObject];
+    [query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){
+        
+        //NAME
+        _name = [user objectForKey:@"Name"];
+        NSLog(@"ASDFASDFA::::::%@", [user objectForKey:@"Name"]);
+        
+        //SCHOOL
+        _school = [user objectForKey:@"School"];
+        
+        
+        //SICK
+        _sickBool = [[user objectForKey:@"CurrentlySick"] boolValue];
+        
+        
+        //PROFILE PICTURE
+        NSString *ImageURL = [user objectForKey:@"pictureURL"];
+        NSLog(@"URL: %@", ImageURL);
+        NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
+        _profilePicture = [UIImage imageWithData:imageData];
+        
+    }];
+}
+
 + (CCBUserInfo *)sharedInstance
 {
     static CCBUserInfo *sharedInstance;

@@ -56,46 +56,54 @@
     if (currentUser) {
         // do stuff with the user
 
-        
+        NSLog(@"LOGINdidload");
         //Hide Nav Bar
         [self.navigationController setNavigationBarHidden:YES];
-    
-
         
-        PFQuery *query= [PFUser query];
+        [self getUserInfoValuesFromCache];
         
-        [query whereKey:@"username" equalTo:[[PFUser currentUser]username]];
-        //PFObject *user = [query getFirstObject];
-        [query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){
+        [self updateView];
+        
+        //[[CCBUserInfo sharedInstance] queryForInfo];
+        //[self getUserInfoValuesFromCache];
+        //[self updateView];
+        
+        if (_name == nil || _school == nil || !_sickB  || _profilePic == nil) {
+            PFQuery *query= [PFUser query];
             
-            //NAME
-            _name = [user objectForKey:@"Name"];
-            NSLog(@"ASDFASDFA::::::%@", [user objectForKey:@"Name"]);
-            
-            //SCHOOL
-            _school = [user objectForKey:@"School"];
+            [query whereKey:@"username" equalTo:[[PFUser currentUser]username]];
+            //PFObject *user = [query getFirstObject];
+            [query getFirstObjectInBackgroundWithBlock:^(PFObject *user, NSError *error){
+                
+                //NAME
+                _name = [user objectForKey:@"Name"];
+                NSLog(@"ASDFASDFA::::::%@", [user objectForKey:@"Name"]);
+                
+                //SCHOOL
+                _school = [user objectForKey:@"School"];
 
-            
-            //SICK
-            _sickB = [[user objectForKey:@"CurrentlySick"] boolValue];
+                
+                //SICK
+                _sickB = [[user objectForKey:@"CurrentlySick"] boolValue];
 
-            
-            //PROFILE PICTURE
-            NSString *ImageURL = [user objectForKey:@"pictureURL"];
-            NSLog(@"URL: %@", ImageURL);
-            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
-            _profilePic = [UIImage imageWithData:imageData];
+                
+                //PROFILE PICTURE
+                NSString *ImageURL = [user objectForKey:@"pictureURL"];
+                NSLog(@"URL: %@", ImageURL);
+                NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:ImageURL]];
+                _profilePic = [UIImage imageWithData:imageData];
 
-            [self updateUserInfoValues];
-            [self updateView];
-            
-        }];
-    
+                [self updateUserInfoValues];
+                [self updateView];
+                
+            }];
+        }
     
 
 
     } else {
         [self performSegueWithIdentifier:@"HomeToLogin" sender:self];
+        [self.navigationController setNavigationBarHidden:YES];
     }
     
     
@@ -118,7 +126,10 @@
 
 }
 
-- (void) getUserInfoValues {
+
+
+
+- (void) getUserInfoValuesFromCache {
     _name = [[CCBUserInfo sharedInstance] name];
     _school = [[CCBUserInfo sharedInstance] school];
     _sickB = [[CCBUserInfo sharedInstance] sickBool];
@@ -140,15 +151,16 @@
         [PFFacebookUtils isLinkedWithUser:[PFUser currentUser]]) // Check if user is linked to Facebook
     {
         NSLog(@"LOGGEDIN");
+        if (_name = nil) {
+            
+        }
         // Push the next view controller without animation
-
+        [self reloadInputViews];
         
     }
     else {
         [self performSegueWithIdentifier:@"HomeToLogin" sender:self];
     }
-    [self getUserInfoValues];
-    [self updateView];
     
 }
 

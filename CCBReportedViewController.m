@@ -29,6 +29,9 @@
 @property (nonatomic, strong) IBOutlet UIButton *Back;
 
 @property (nonatomic) BOOL riskQueryFinished;
+@property (strong, nonatomic) IBOutlet UIButton *schoolButton;
+@property (strong, nonatomic) IBOutlet UIButton *threeDayButton;
+@property (strong, nonatomic) IBOutlet UIButton *currentButton;
 
 
 
@@ -151,7 +154,7 @@
     CLLocation *location = _locationManager.location;
     //CLLocationCoordinate2D coordinate = [location coordinate];
     //[self.view addSubview:[[MBXMapView alloc] initWithFrame:self.view.bounds mapID:@MAP_ID]];
-    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,125,320,405) mapID:@MAP_ID];
+    _mapView = [[MBXMapView alloc] initWithFrame:CGRectMake(0,80,320,365) mapID:@MAP_ID];
     // _mapView = [[MKMapView alloc] initWithFrame:self.view.bounds];
     _mapView.showsUserLocation = YES;
     //_mapView.mapType = MKMapTypeSatellite;
@@ -167,7 +170,8 @@
     self.pageController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:nil];
     
     self.pageController.dataSource = self;
-    [[self.pageController view] setFrame:CGRectMake(0,0,320,125)];
+    float verticalPos = (self.view.frame.size.height - 125);
+    [[self.pageController view] setFrame:CGRectMake(0,verticalPos,320,125)];
     [self.pageController view].backgroundColor = [UIColor darkGrayColor];
     
     UIViewController *initialViewController = [self viewControllerAtIndex:0];
@@ -526,6 +530,13 @@
         }
     }
     
+}
+
+- (IBAction)buttonClick:(UIButton *)sender {
+    _schoolButton.selected = NO;
+    _threeDayButton.selected = NO;
+    _currentButton.selected = NO;
+    sender.selected = YES;
 }
 
 
